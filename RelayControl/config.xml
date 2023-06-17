@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Config>
+  <COMPort>16</COMPort>
+  <BaudRate>9600</BaudRate>
+  <Parity>None</Parity>
+  <DataBits>8</DataBits>
+  <StopBits>One</StopBits>
+</Config>
