@@ -1,0 +1,9 @@
+C:\Github\LP15_RelayControl\RelayControl\bin\Release\config.xml
+C:\Github\LP15_RelayControl\RelayControl\bin\Release\RelayControl.exe.config
+C:\Github\LP15_RelayControl\RelayControl\bin\Release\RelayControl.exe
+C:\Github\LP15_RelayControl\RelayControl\bin\Release\RelayControl.pdb
+C:\Github\LP15_RelayControl\RelayControl\obj\Release\RelayControl.csproj.AssemblyReference.cache
+C:\Github\LP15_RelayControl\RelayControl\obj\Release\RelayControl.csproj.SuggestedBindingRedirects.cache
+C:\Github\LP15_RelayControl\RelayControl\obj\Release\RelayControl.csproj.CoreCompileInputs.cache
+C:\Github\LP15_RelayControl\RelayControl\obj\Release\RelayControl.exe
+C:\Github\LP15_RelayControl\RelayControl\obj\Release\RelayControl.pdb
