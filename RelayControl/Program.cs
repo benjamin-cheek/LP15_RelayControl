@@ -55,7 +55,7 @@ namespace SerialControl
             int messageIndex;
             int arg0;
             int arg1;
-            if (!int.TryParse(args[0], out arg0) || !int.TryParse(args[1], out arg1))
+            if (!int.TryParse(args[0], out arg0) || !int.TryParse(args[1], out arg1) || arg0 < 1 || arg0 > 16 || arg1 < 0 || arg1 > 1)
             {
                 Console.WriteLine($"Invalid argument passed. Channel must be an integer between 1 and 16. State must be an integer 0 or 1");
                 return;
@@ -80,6 +80,8 @@ namespace SerialControl
                     if (serialPort.IsOpen)
                     {
                         serialPort.Write(message, 0, message.Length);
+                        System.Threading.Thread.Sleep(10);
+                        serialPort.Close();
                     }
                     else
                     {
@@ -107,7 +109,11 @@ namespace SerialControl
 
         private static SerialPortSettings GetSerialPortSettingsFromConfig()
         {
-            var config = XDocument.Load("config.xml");
+            var exeLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var exeDirectory = System.IO.Path.GetDirectoryName(exeLocation);
+            var configFilePath = System.IO.Path.Combine(exeDirectory, "config.xml");
+
+            var config = XDocument.Load(configFilePath);
 
             var comPort = int.Parse(config.Descendants("COMPort").First().Value);
             var baudRate = int.Parse(config.Descendants("BaudRate").First().Value);

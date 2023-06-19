@@ -1,7 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <Config>
-  <COMPort>16</COMPort>
+  <COMPort>22</COMPort>
   <BaudRate>9600</BaudRate>
   <Parity>None</Parity>
   <DataBits>8</DataBits>
