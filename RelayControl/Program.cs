@@ -3,14 +3,16 @@ using System.IO.Ports;
 using System.Xml.Linq;
 using System.Linq;
 using System.IO;
+using FTD2XX_NET;
 
 namespace SerialControl
 {
     class Program
     {
+        
         static readonly byte[][] messages = new byte[][]
         {
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x30, 0x46, 0x46, 0x30, 0x30, 0x46, 0x45, 0x0D, 0x0A}, //CH-1 ON [0]
+            new byte[] {0xFF, 0x01, 0x01}, //CH-1 ON [0]
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x31, 0x46, 0x46, 0x30, 0x30, 0x46, 0x44, 0x0D, 0x0A}, //CH-2 ON [1]
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x32, 0x46, 0x46, 0x30, 0x30, 0x46, 0x43, 0x0D, 0x0A}, //CH-3 ON [2]
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x33, 0x46, 0x46, 0x30, 0x30, 0x46, 0x42, 0x0D, 0x0A}, //CH-4 ON [3]
@@ -26,7 +28,7 @@ namespace SerialControl
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x44, 0x46, 0x46, 0x30, 0x30, 0x46, 0x31, 0x0D, 0x0A}, //CH-14 ON [13]
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x45, 0x46, 0x46, 0x30, 0x30, 0x46, 0x30, 0x0D, 0x0A}, //CH-15 ON [14]
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x46, 0x46, 0x46, 0x30, 0x30, 0x46, 0x46, 0x0D, 0x0A}, //CH-16 ON [15]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x46, 0x44, 0x0D, 0x0A}, //CH-1 OFF [16]
+            new byte[] {0xFF, 0x01, 0x00}, //CH-1 OFF [16]
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x31, 0x30, 0x30, 0x30, 0x30, 0x46, 0x43, 0x0D, 0x0A}, //CH-2 OFF [17]
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x32, 0x30, 0x30, 0x30, 0x30, 0x46, 0x42, 0x0D, 0x0A}, //CH-3 OFF [18]
             new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x33, 0x30, 0x30, 0x30, 0x30, 0x46, 0x41, 0x0D, 0x0A}, //CH-4 OFF [19]
@@ -46,6 +48,8 @@ namespace SerialControl
 
         static void Main(string[] args)
         {
+            SerialPortSettings serialPortSettings = GetSerialPortSettingsFromConfig();
+            initFTDI(serialPortSettings.ComPort);
             if (args.Length != 2)
             {
                 Console.WriteLine("Usage: RelayControl <channel (int 1-16)> <state (int 0=OFF 1=ON)>");
@@ -68,8 +72,6 @@ namespace SerialControl
             }
 
             byte[] message = messages[messageIndex];
-
-            SerialPortSettings serialPortSettings = GetSerialPortSettingsFromConfig();
             string port = "COM" + serialPortSettings.ComPort.ToString();
 
             try
@@ -122,6 +124,37 @@ namespace SerialControl
             var stopBits = (StopBits)Enum.Parse(typeof(StopBits), config.Descendants("StopBits").First().Value);
 
             return new SerialPortSettings(comPort, baudRate, parity, dataBits, stopBits);
+        }
+
+        private static FTDI.FT_STATUS initFTDI(int comport)
+        {
+            UInt32 ftdiDeviceCount = 0;
+            UInt32 deviceIndex = 1000;
+            FTDI.FT_STATUS ftStatus = FTDI.FT_STATUS.FT_OK;
+            FTDI newFTDI = new FTDI();
+            ftStatus = newFTDI.GetNumberOfDevices(ref ftdiDeviceCount);
+            if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
+            FTDI.FT_DEVICE_INFO_NODE[] ftdiDeviceList = new FTDI.FT_DEVICE_INFO_NODE[ftdiDeviceCount];
+            ftStatus = newFTDI.GetDeviceList(ftdiDeviceList);
+            if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
+            for (UInt32 i = 0; i < ftdiDeviceCount; i++)
+            {
+                ftStatus = newFTDI.OpenByIndex(i);
+                if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
+                string com;
+                newFTDI.GetCOMPort(out com);
+                com = com.Substring(3);
+                if (int.Parse(com) == comport) deviceIndex = i;
+                if (deviceIndex != 1000) break;
+                ftStatus = newFTDI.Close();
+                if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
+            }
+            if(deviceIndex != 1000)
+            {
+                ftStatus = newFTDI.
+
+            }
+            return FTDI.FT_STATUS.FT_OK;
         }
     }
 

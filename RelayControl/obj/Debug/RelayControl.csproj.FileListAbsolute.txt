@@ -7,3 +7,6 @@ C:\Github\LP15_RelayControl\RelayControl\obj\Debug\RelayControl.csproj.Suggested
 C:\Github\LP15_RelayControl\RelayControl\obj\Debug\RelayControl.csproj.CoreCompileInputs.cache
 C:\Github\LP15_RelayControl\RelayControl\obj\Debug\RelayControl.exe
 C:\Github\LP15_RelayControl\RelayControl\obj\Debug\RelayControl.pdb
+C:\Github\LP15_RelayControl\RelayControl\bin\Debug\FTD2XX_NET.dll
+C:\Github\LP15_RelayControl\RelayControl\bin\Debug\FTD2XX_NET.xml
+C:\Github\LP15_RelayControl\RelayControl\obj\Debug\RelayControl.csproj.CopyComplete
