@@ -4,74 +4,55 @@ using System.Xml.Linq;
 using System.Linq;
 using System.IO;
 using FTD2XX_NET;
+using System.Threading.Tasks;
 
 namespace SerialControl
 {
     class Program
     {
         
-        static readonly byte[][] messages = new byte[][]
+        static readonly byte[] masks = new byte[]
         {
-            new byte[] {0xFF, 0x01, 0x01}, //CH-1 ON [0]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x31, 0x46, 0x46, 0x30, 0x30, 0x46, 0x44, 0x0D, 0x0A}, //CH-2 ON [1]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x32, 0x46, 0x46, 0x30, 0x30, 0x46, 0x43, 0x0D, 0x0A}, //CH-3 ON [2]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x33, 0x46, 0x46, 0x30, 0x30, 0x46, 0x42, 0x0D, 0x0A}, //CH-4 ON [3]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x34, 0x46, 0x46, 0x30, 0x30, 0x46, 0x41, 0x0D, 0x0A}, //CH-5 ON [4]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x35, 0x46, 0x46, 0x30, 0x30, 0x46, 0x39, 0x0D, 0x0A}, //CH-6 ON [5]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x36, 0x46, 0x46, 0x30, 0x30, 0x46, 0x38, 0x0D, 0x0A}, //CH-7 ON [6]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x37, 0x46, 0x46, 0x30, 0x30, 0x46, 0x37, 0x0D, 0x0A}, //CH-8 ON [7]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x38, 0x46, 0x46, 0x30, 0x30, 0x46, 0x36, 0x0D, 0x0A}, //CH-9 ON [8]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x39, 0x46, 0x46, 0x30, 0x30, 0x46, 0x35, 0x0D, 0x0A}, //CH-10 ON [9]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x41, 0x46, 0x46, 0x30, 0x30, 0x46, 0x34, 0x0D, 0x0A}, //CH-11 ON [10]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x42, 0x46, 0x46, 0x30, 0x30, 0x46, 0x33, 0x0D, 0x0A}, //CH-12 ON [11]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x43, 0x46, 0x46, 0x30, 0x30, 0x46, 0x32, 0x0D, 0x0A}, //CH-13 ON [12]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x44, 0x46, 0x46, 0x30, 0x30, 0x46, 0x31, 0x0D, 0x0A}, //CH-14 ON [13]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x45, 0x46, 0x46, 0x30, 0x30, 0x46, 0x30, 0x0D, 0x0A}, //CH-15 ON [14]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x46, 0x46, 0x46, 0x30, 0x30, 0x46, 0x46, 0x0D, 0x0A}, //CH-16 ON [15]
-            new byte[] {0xFF, 0x01, 0x00}, //CH-1 OFF [16]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x31, 0x30, 0x30, 0x30, 0x30, 0x46, 0x43, 0x0D, 0x0A}, //CH-2 OFF [17]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x32, 0x30, 0x30, 0x30, 0x30, 0x46, 0x42, 0x0D, 0x0A}, //CH-3 OFF [18]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x33, 0x30, 0x30, 0x30, 0x30, 0x46, 0x41, 0x0D, 0x0A}, //CH-4 OFF [19]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x34, 0x30, 0x30, 0x30, 0x30, 0x46, 0x39, 0x0D, 0x0A}, //CH-5 OFF [20]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x35, 0x30, 0x30, 0x30, 0x30, 0x46, 0x38, 0x0D, 0x0A}, //CH-6 OFF [21]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x36, 0x30, 0x30, 0x30, 0x30, 0x46, 0x37, 0x0D, 0x0A}, //CH-7 OFF [22]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x37, 0x30, 0x30, 0x30, 0x30, 0x46, 0x36, 0x0D, 0x0A}, //CH-8 OFF [23]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x38, 0x30, 0x30, 0x30, 0x30, 0x46, 0x35, 0x0D, 0x0A}, //CH-9 OFF [24]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x39, 0x30, 0x30, 0x30, 0x30, 0x46, 0x34, 0x0D, 0x0A}, //CH-10 OFF [25]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x41, 0x30, 0x30, 0x30, 0x30, 0x46, 0x33, 0x0D, 0x0A}, //CH-11 OFF [26]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x42, 0x30, 0x30, 0x30, 0x30, 0x46, 0x32, 0x0D, 0x0A}, //CH-12 OFF [27]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x43, 0x30, 0x30, 0x30, 0x30, 0x46, 0x31, 0x0D, 0x0A}, //CH-13 OFF [28]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x44, 0x30, 0x30, 0x30, 0x30, 0x46, 0x30, 0x0D, 0x0A}, //CH-14 OFF [29]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x45, 0x30, 0x30, 0x30, 0x30, 0x46, 0x46, 0x0D, 0x0A}, //CH-15 OFF [30]
-            new byte[] {0x3A, 0x46, 0x45, 0x30, 0x35, 0x30, 0x30, 0x30, 0x46, 0x30, 0x30, 0x30, 0x30, 0x46, 0x45, 0x0D, 0x0A}  //CH-16 OFF [31]
+            0x01, //CH-1
+            0x02, //CH-2
+            0x04, //CH-3
+            0x08, //CH-4
+            0x10, //CH-5
+            0x20, //CH-6
+            0x40, //CH-7
+            0x80  //CH-8
         };
 
         static void Main(string[] args)
         {
             SerialPortSettings serialPortSettings = GetSerialPortSettingsFromConfig();
-            initFTDI(serialPortSettings.ComPort);
+            UInt32 ftdiIndex;
+            initFTDI(serialPortSettings.ComPort, out ftdiIndex);
             if (args.Length != 2)
             {
-                Console.WriteLine("Usage: RelayControl <channel (int 1-16)> <state (int 0=OFF 1=ON)>");
+                Console.WriteLine("Usage: RelayControl <channel (int 1-8)> <state (int 0=OFF 1=ON)>");
                 return;
             }
 
-            int messageIndex;
             int arg0;
             int arg1;
-            if (!int.TryParse(args[0], out arg0) || !int.TryParse(args[1], out arg1) || arg0 < 1 || arg0 > 16 || arg1 < 0 || arg1 > 1)
+            if (!int.TryParse(args[0], out arg0) || !int.TryParse(args[1], out arg1) || arg0 < 1 || arg0 > 8 || arg1 < 0 || arg1 > 1)
             {
-                Console.WriteLine($"Invalid argument passed. Channel must be an integer between 1 and 16. State must be an integer 0 or 1");
+                Console.WriteLine($"Invalid argument passed. Channel must be an integer between 1 and 8. State must be an integer 0 or 1");
                 return;
             }
-            messageIndex = (arg0 - 1) + (Math.Abs(arg1-1) * 16);
-            if (messageIndex < 0 || messageIndex >= messages.Length)
+            arg0--;
+            byte state = getRelayState(ftdiIndex);
+            if (arg1 == 1)
             {
-                Console.WriteLine($"Invalid argument passed. Channel must be an integer between 1 and 16. State must be an integer 0 or 1");
-                return;
+                state |= masks[arg0];
             }
-
-            byte[] message = messages[messageIndex];
+            else if (arg1 == 0)
+            {
+                byte imask = (byte)~masks[arg0];
+                state &= imask;
+            }
+            byte[] message = { state };
             string port = "COM" + serialPortSettings.ComPort.ToString();
 
             try
@@ -126,34 +107,57 @@ namespace SerialControl
             return new SerialPortSettings(comPort, baudRate, parity, dataBits, stopBits);
         }
 
-        private static FTDI.FT_STATUS initFTDI(int comport)
+        private static byte getRelayState(UInt32 deviceIndex)
+        {
+            FTDI.FT_STATUS ftStatus = FTDI.FT_STATUS.FT_OK;
+            FTDI newFTDI = new FTDI();
+            ftStatus = newFTDI.OpenByIndex(deviceIndex);
+            if (ftStatus != FTDI.FT_STATUS.FT_OK) Console.WriteLine($"FTDI Error: {ftStatus}");
+            byte[] buffer = new byte[1];
+            UInt32 readBytes = 0;
+            ftStatus = newFTDI.Read(buffer, 1, ref readBytes);
+            if (ftStatus != FTDI.FT_STATUS.FT_OK) Console.WriteLine($"FTDI Error: {ftStatus}");
+            ftStatus = newFTDI.Close();
+            if (ftStatus != FTDI.FT_STATUS.FT_OK) Console.WriteLine($"FTDI Error: {ftStatus}");
+            return buffer[0];
+        }
+
+        private static FTDI.FT_STATUS initFTDI(int comport, out UInt32 index)
         {
             UInt32 ftdiDeviceCount = 0;
-            UInt32 deviceIndex = 1000;
+            UInt32 deviceIndex = 1000; //big number
+            index = deviceIndex;
             FTDI.FT_STATUS ftStatus = FTDI.FT_STATUS.FT_OK;
             FTDI newFTDI = new FTDI();
             ftStatus = newFTDI.GetNumberOfDevices(ref ftdiDeviceCount);
-            if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
             FTDI.FT_DEVICE_INFO_NODE[] ftdiDeviceList = new FTDI.FT_DEVICE_INFO_NODE[ftdiDeviceCount];
             ftStatus = newFTDI.GetDeviceList(ftdiDeviceList);
-            if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
             for (UInt32 i = 0; i < ftdiDeviceCount; i++)
             {
+                //Open each FTDI device found and check if the comport matches what was passed
                 ftStatus = newFTDI.OpenByIndex(i);
-                if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
+                if (ftStatus != FTDI.FT_STATUS.FT_OK) Console.WriteLine($"Error opening FTDI device at index {i}");
                 string com;
                 newFTDI.GetCOMPort(out com);
                 com = com.Substring(3);
-                if (int.Parse(com) == comport) deviceIndex = i;
-                if (deviceIndex != 1000) break;
+                if (int.Parse(com) == comport)
+                {
+                    //If the comport matches, break from the loop before closing the device
+                    deviceIndex = i;
+                    index = i;
+                    break;
+                }
                 ftStatus = newFTDI.Close();
                 if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
             }
-            if(deviceIndex != 1000)
+            if (deviceIndex != 1000)
             {
-                ftStatus = newFTDI.
-
-            }
+                //if the loop was exited because an FTDI with the right comport was found, set bitbang mode and close
+                ftStatus = newFTDI.SetBitMode(0xFF, FTDI.FT_BIT_MODES.FT_BIT_MODE_ASYNC_BITBANG); //mask sets all pins to output
+                if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
+                ftStatus = newFTDI.Close();
+                if (ftStatus != FTDI.FT_STATUS.FT_OK) return ftStatus;
+            } else Console.WriteLine($"No FTDI device found at COMPORT {comport}");
             return FTDI.FT_STATUS.FT_OK;
         }
     }
